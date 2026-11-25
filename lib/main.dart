@@ -1,168 +1,122 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_v2ray/flutter_v2ray.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() => runApp(const UzzApp());
+void main() => runApp(const MaterialApp(home: TunnelApp(), debugShowCheckedModeBanner: false));
 
-class Config {
-  String name;
-  String link;
-  String ping;
-  Config({required this.name, required this.link, required this.ping});
-}
-
-class UzzApp extends StatelessWidget {
-  const UzzApp({super.key});
+class TunnelApp extends StatefulWidget {
+  const TunnelApp({super.key});
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(),
-      home: const HomePage(),
-    );
-  }
+  State<TunnelApp> createState() => _TunnelAppState();
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  List<Config> configs = [];
-  int selected = -1;
+class _TunnelAppState extends State<TunnelApp> {
+  late FlutterV2ray v2ray;
+  List<Map<String, dynamic>> configs = [];
+  int selected = 0;
   bool connected = false;
   String status = "DISCONNECTED";
 
-  void showImport() {
-    TextEditingController ctrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: const Text("Import Config"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text("Paste link vless:// / vmess:// / trojan:// / ss://"),
-            const SizedBox(height: 10),
-            TextField(
-              controller: ctrl,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                hintText: "vless://...",
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () async {
-                var data = await Clipboard.getData('text/plain');
-                if (data?.text != null) ctrl.text = data!.text!;
-              },
-              child: const Text("Paste dari Clipboard"),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(c), child: const Text("Batal")),
-          ElevatedButton(
-            onPressed: () {
-              String link = ctrl.text.trim();
-              if (link.startsWith("vless://") || link.startsWith("vmess://") || link.startsWith("trojan://") || link.startsWith("ss://")) {
-                String name = "Config ${configs.length + 1}";
-                if (link.contains("#")) {
-                  name = Uri.decodeComponent(link.split("#").last);
-                  if (name.isEmpty) name = "Config ${configs.length + 1}";
-                }
-                setState(() {
-                  configs.add(Config(name: name, link: link, ping: "0 ms"));
-                  selected = configs.length - 1;
-                });
-              }
-              Navigator.pop(c);
-            },
-            child: const Text("Simpan"),
-          ),
-        ],
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    v2ray = FlutterV2ray(onStatusChanged: (s) {
+      setState(() {
+        connected = s == V2RayStatus.connected;
+        status = connected ? "CONNECTED" : "DISCONNECTED";
+      });
+    });
+    loadConfigs();
+  }
+
+  Future<void> loadConfigs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = prefs.getString('configs');
+    if (data != null) {
+      setState(() => configs = List<Map<String, dynamic>>.from(jsonDecode(data)));
+    }
+  }
+
+  Future<void> saveConfigs() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('configs', jsonEncode(configs));
+  }
+
+  void parseAndAdd(String text) {
+    try {
+      Uri uri = Uri.parse(text.trim());
+      String name = uri.fragment.isNotEmpty ? Uri.decodeComponent(uri.fragment) : "${uri.host}:${uri.port}";
+      setState(() => configs.add({"name": name, "link": text.trim()}));
+      saveConfigs();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Config $name ditambah!")));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Config tidak valid")));
+    }
+  }
+
+  Future<void> toggleConnect() async {
+    if (configs.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Tambah config dulu!")));
+      return;
+    }
+    if (connected) {
+      await v2ray.stopV2Ray();
+    } else {
+      bool granted = await v2ray.requestPermission();
+      if (!granted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Izin VPN ditolak!")));
+        return;
+      }
+      try {
+        await v2ray.startV2Ray(
+          remark: configs[selected]['name'],
+          config: configs[selected]['link'],
+          proxyOnly: false,
+          bypassLan: false,
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Gagal konek: $e")));
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
-        title: const Text("UZZ TUNNEL", style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [IconButton(icon: const Icon(Icons.settings), onPressed: () {})],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(16)),
-              child: Column(
-                children: [
-                  Text(status, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: connected ? Colors.green : Colors.red)),
-                  const SizedBox(height: 8),
-                  Text(selected >= 0 ? configs[selected].name : "Belum ada config"),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: connected ? Colors.red : Colors.blue, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25))),
-                      onPressed: () {
-                        if (selected < 0) { showImport(); return; }
-                        setState(() { connected = !connected; status = connected ? "CONNECTED" : "DISCONNECTED"; });
-                      },
-                      child: Text(connected ? "DISCONNECT" : "CONNECT", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.purple, padding: const EdgeInsets.symmetric(vertical: 14)),
-                onPressed: showImport,
-                icon: const Icon(Icons.add),
-                label: const Text("+ IMPORT CONFIG", style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Align(alignment: Alignment.centerLeft, child: Text("PILIH CONFIG", style: TextStyle(fontWeight: FontWeight.bold))),
-            const SizedBox(height: 8),
-            Expanded(
-              child: configs.isEmpty
-                  ? const Center(child: Text("Belum ada config.\nKlik + IMPORT CONFIG di atas", textAlign: TextAlign.center))
-                  : ListView.builder(
-                      itemCount: configs.length,
-                      itemBuilder: (c, i) {
-                        return Card(
-                          color: selected == i ? const Color(0xFF2563EB) : const Color(0xFF1E293B),
-                          child: ListTile(
-                            leading: const Icon(Icons.language, color: Colors.white),
-                            title: Text(configs[i].name),
-                            subtitle: Text(configs[i].link.length > 40 ? "${configs[i].link.substring(0, 40)}..." : configs[i].link),
-                            trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                              Text(configs[i].ping),
-                              IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () { setState(() { configs.removeAt(i); if (selected == i) selected = -1; }); }),
-                            ]),
-                            onTap: () => setState(() => selected = i),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
-      ),
+      appBar: AppBar(title: const Text("UZZ TUNNEL", style: TextStyle(fontWeight: FontWeight.bold)), backgroundColor: const Color(0xFF0F172A), centerTitle: true),
+      body: Column(children: [
+        const SizedBox(height: 20),
+        CircleAvatar(radius: 60, backgroundColor: connected ? Colors.green : Colors.grey, child: const Icon(Icons.power_settings_new, size: 60, color: Colors.white)),
+        const SizedBox(height: 10),
+        Text(status, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 20),
+        Expanded(child: ListView.builder(
+          itemCount: configs.length,
+          itemBuilder: (c, i) => ListTile(
+            onTap: () => setState(() => selected = i),
+            leading: Icon(Icons.check_circle, color: selected == i ? Colors.blue : Colors.grey),
+            title: Text(configs[i]['name'], style: const TextStyle(color: Colors.white)),
+            subtitle: const Text("Tap untuk pilih", style: TextStyle(color: Colors.grey)),
+          ),
+        )),
+        Padding(padding: const EdgeInsets.all(16), child: Column(children: [
+          ElevatedButton(onPressed: toggleConnect, style: ElevatedButton.styleFrom(backgroundColor: connected ? Colors.red : Colors.green, minimumSize: const Size(double.infinity, 50)), child: Text(connected ? "DISCONNECT" : "CONNECT")),
+          const SizedBox(height: 10),
+          Row(children: [
+            Expanded(child: ElevatedButton(onPressed: () {
+              String input = "";
+              showDialog(context: context, builder: (_) => AlertDialog(title: const Text("Tambah Config"), content: TextField(onChanged: (v) => input = v, decoration: const InputDecoration(hintText: "Paste vless://...")), actions: [TextButton(onPressed: () { Navigator.pop(context); parseAndAdd(input); }, child: const Text("SIMPAN"))]));
+            }, child: const Text("+ TAMBAH"))),
+            const SizedBox(width: 10),
+            Expanded(child: ElevatedButton(onPressed: () {
+              String input = "";
+              showDialog(context: context, builder: (_) => AlertDialog(title: const Text("Import Config"), content: TextField(maxLines: 5, onChanged: (v) => input = v, decoration: const InputDecoration(hintText: "Paste isi file .txt")), actions: [TextButton(onPressed: () { Navigator.pop(context); for (var line in input.split('\n')) { if (line.trim().startsWith('vless://') || line.trim().startsWith('vmess://')) parseAndAdd(line.trim()); } }, child: const Text("IMPORT"))]));
+            }, style: ElevatedButton.styleFrom(backgroundColor: Colors.purple), child: const Text("IMPORT CONFIG"))),
+          ]),
+        ])),
+      ]),
     );
   }
 }
