@@ -22,7 +22,7 @@ class _TunnelAppState extends State<TunnelApp> {
   @override
   void initState() {
     super.initState();
-    v2ray = FlutterV2Ray(onStatusChanged: (s) {
+    v2ray = FlutterV2ray(onStatusChanged: (s) {
   setState(() {
     connected = s.state.toString().toLowerCase().contains('connected');
     status = connected ? "CONNECTED" : "DISCONNECTED";
