@@ -44,16 +44,56 @@ class _TunnelAppState extends State<TunnelApp> {
     prefs.setString('configs', jsonEncode(configs));
   }
 
+    void deleteConfig(int i) {
+    setState(() {
+      configs.removeAt(i);
+      if (selected >= configs.length) selected = 0;
+      if (configs.isEmpty) {
+        connected = false;
+        status = "Belum terhubung";
+      }
+    });
+    saveConfigs();
+  }
+
   void parseAndAdd(String text) {
-    try {
-      Uri uri = Uri.parse(text.trim());
-      String name = uri.fragment.isNotEmpty ? Uri.decodeComponent(uri.fragment) : "${uri.host}:${uri.port}";
-      setState(() => configs.add({"name": name, "link": text.trim()}));
-      saveConfigs();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Config $name ditambah!")));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Config tidak valid")));
+    String link = text.trim();
+    if (link.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Config kosong")));
+      return;
     }
+    String name = "";
+    try {
+      if (link.startsWith("eyJ")) {
+        link = "vmess://$link";
+      } else if (link.startsWith("{")) {
+        final Map m = jsonDecode(link);
+        String b64 = base64.encode(utf8.encode(jsonEncode(m)));
+        link = "vmess://$b64";
+      }
+      if (link.startsWith("vmess://")) {
+        String b64 = link.substring(8).trim();
+        b64 = b64.replaceAll("-", "+").replaceAll("_", "/");
+        while (b64.length % 4 != 0) b64 += "=";
+        final Map m = jsonDecode(utf8.decode(base64.decode(b64)));
+        name = (m["ps"] ?? "").toString();
+      }
+      if (name.isEmpty) {
+        Uri uri = Uri.parse(link);
+        name = uri.fragment.isNotEmpty
+            ? Uri.decodeComponent(uri.fragment)
+            : link.length > 20 ? link.substring(0, 20) : link;
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Config tidak valid: $e")));
+      return;
+    }
+    setState(() {
+      configs.add({"name": name.isEmpty ? "Config" : name, "link": link});
+    });
+    saveConfigs();
   }
 
   Future<void> toggleConnect() async {
@@ -98,7 +138,11 @@ class _TunnelAppState extends State<TunnelApp> {
             onTap: () => setState(() => selected = i),
             leading: Icon(Icons.check_circle, color: selected == i ? Colors.blue : Colors.grey),
             title: Text(configs[i]['name'], style: const TextStyle(color: Colors.white)),
-            subtitle: const Text("Tap untuk pilih", style: TextStyle(color: Colors.grey)),
+     subtitle: const Text("Tap untuk pilih", style: TextStyle(color: Colors.grey)),
+trailing: IconButton(
+  icon: const Icon(Icons.delete, color: Colors.red),
+  onPressed: () => deleteConfig(i),
+)
           ),
         )),
         Padding(padding: const EdgeInsets.all(16), child: Column(children: [
