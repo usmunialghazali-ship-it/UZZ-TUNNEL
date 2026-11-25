@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_v2ray/flutter_v2ray.dart';
+import 'package:flutter_v2ray_client/flutter_v2ray.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(MaterialApp(debugShowCheckedModeBanner: false, home: Home(), theme: ThemeData(scaffoldBackgroundColor: Color(0xFFF6F8F7))));
