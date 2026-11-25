@@ -60,8 +60,9 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         isConnected = status.state == 'CONNECTED';
         duration = status.duration;
-        upSpeed = status.uploadSpeed;
-        downSpeed = status.downloadSpeed;
+        upSpeed = '${(status.uploadSpeed / 1024).toStringAsFixed(1)} KB/s';
+downSpeed = '${(status.downloadSpeed / 1024).toStringAsFixed(1)} KB/s';
+      
         if (isConnected) { statusText = 'Connected'; isConnecting = false; }
       });
     });
