@@ -15,6 +15,7 @@ class _TunnelAppState extends State<TunnelApp> {
   late FlutterV2ray v2ray;
   List<Map<String, dynamic>> configs = [];
   int selected = 0;
+  bool isConnecting = false;
   bool connected = false;
   String status = "DISCONNECTED";
 
