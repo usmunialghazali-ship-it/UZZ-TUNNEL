@@ -65,31 +65,7 @@ class _HomeState extends State<Home> {
     }
   }
 
-  Future<void> toggleConnect() async {
-    if (connected) {
-      await v2ray.stopV2Ray();
-      setState(() { connected = false; status = "Disconnected"; });
-      return;
-    }
-    if (configs.isEmpty) {
-      setState(() => status = "Tambah config dulu!");
-      return;
-    }
-    try {
-      setState(() => status = "Connecting...");
-      final fullConfig = configs[selected]['config'].toString();
-      await Future.delayed(Duration(seconds: 1));
-      await v2ray.startV2Ray(
-        remark: configs[selected]['name'],
-        config: fullConfig,
-        proxyOnly: false,
-      );
-      setState(() { connected = true; status = "Connected - ${configs[selected]['name']}"; });
-    } catch (e) {
-      setState(() => status = "Gagal: $e");
-    }
-  }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,7 +93,31 @@ class _HomeState extends State<Home> {
                       SizedBox(width: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                        chiFuture<void> toggleConnect() async {
+    if (connected) {
+      await v2ray.stopV2Ray();
+      setState(() { connected = false; status = "Disconnected"; });
+      return;
+    }
+    if (configs.isEmpty) {
+      setState(() => status = "Tambah config dulu!");
+      return;
+    }
+    try {
+      setState(() => status = "Connecting...");
+      final fullConfig = configs[selected]['config'].toString();
+      await Future.delayed(Duration(seconds: 1));
+      await v2ray.startV2Ray(
+        remark: configs[selected]['name'],
+        config: fullConfig,
+        proxyOnly: false,
+      );
+      setState(() { connected = true; status = "Connected - ${configs[selected]['name']}"; });
+    } catch (e) {
+      setState(() => status = "Gagal: $e");
+    }
+                        }
+                        ldren: [
                           Text("UZZ TUNNEL", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: 1)),
                           Text("Fast • Secure • Unlimited", style: TextStyle(color: Colors.white70, fontSize: 12)),
                         ],
