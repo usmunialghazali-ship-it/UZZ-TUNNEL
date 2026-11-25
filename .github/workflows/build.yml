@@ -15,7 +15,8 @@ jobs:
       - name: Build APK
         run: |
           flutter --version
-          flutter create . --project-name uzz_tunnel
+             rm -f build.gradle settings.gradle
+          flutter create . --project-name uzz_tunnel   --overwrite
           flutter pub get
           flutter build apk --release
       - name: Upload APK
