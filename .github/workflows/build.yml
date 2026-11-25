@@ -16,7 +16,11 @@ jobs:
         with:
           flutter-version: '3.22.0'
           channel: 'stable'
-          cache: true
+          cache: true   
+          - uses: android-actions/setup-android@v3
+        with:
+          api-level: 35
+          build-tools: 35.0.0
       - name: Generate Android folder
         run: |
           flutter create . --project-name uzz_tunnel --platforms android
