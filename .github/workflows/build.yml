@@ -19,7 +19,7 @@ jobs:
           cache: true
       - name: Generate Android folder
         run: |
-          `flutter create . --project-name uzz_tunnel --platforms android`
+          flutter create . --project-name uzz_tunnel --platforms android`
           flutter pub get
       - name: Fix SDK to 35
         run: |
