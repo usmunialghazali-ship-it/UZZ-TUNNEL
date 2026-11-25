@@ -14,7 +14,9 @@ class _HomeState extends State<Home> {
   int selected = 0;
   bool connected = false;
   String status = "Belum terhubung";
-  final v2ray = FlutterV2ray()
+  final v2ray = FlutterV2ray(
+  onStatusChanged: (s) {},
+);
 
   @override void initState() { super.initState(); loadConfigs(); }
 
