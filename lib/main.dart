@@ -21,12 +21,12 @@ class _TunnelAppState extends State<TunnelApp> {
   @override
   void initState() {
     super.initState();
-    v2ray = FlutterV2ray(onStatusChanged: (s) {
-      setState(() {
-        connected = s == V2RayStatus.connected;
-        status = connected ? "CONNECTED" : "DISCONNECTED";
-      });
-    });
+    v2ray = FlutterV2Ray(onStatusChanged: (s) {
+  setState(() {
+    connected = s.state.toString().toLowerCase().contains('connected');
+    status = connected ? "CONNECTED" : "DISCONNECTED";
+  });
+});
     loadConfigs();
   }
 
@@ -73,7 +73,6 @@ class _TunnelAppState extends State<TunnelApp> {
           remark: configs[selected]['name'],
           config: configs[selected]['link'],
           proxyOnly: false,
-          bypassLan: false,
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Gagal konek: $e")));
