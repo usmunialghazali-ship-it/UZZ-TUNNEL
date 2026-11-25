@@ -24,6 +24,7 @@ jobs:
           cp lib/main.dart /tmp/main.dart.bak
           cp pubspec.yaml /tmp/pubspec.yaml.bak
           flutter create . --project-name uzz_tunnel --overwrite
+                  sed -i "s/1.9.0/2.2.0/g" android/settings.gradle
           cp /tmp/main.dart.bak lib/main.dart
           cp /tmp/pubspec.yaml.bak pubspec.yaml
           flutter pub get
