@@ -95,7 +95,7 @@ class _HomeState extends State<Home> {
   Future<void> toggleConnect() async {
     if (configs.isEmpty) return;
     if (connected) {
-      await v2ray.stopV2ray();
+      await v2ray.stopV2Ray();
       setState(() { connected = false; status = "Belum terhubung"; });
       return;
     }
@@ -104,7 +104,7 @@ class _HomeState extends State<Home> {
     try {
       var v = configs[selected]['vmess'];
       String fullConfig = buildV2rayConfig(v);
-      await v2ray.startV2ray(
+      await v2ray.startV2Ray(
         remark: configs[selected]['name'],
         config: fullConfig,
         proxyOnly: false,
