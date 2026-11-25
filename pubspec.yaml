@@ -12,7 +12,8 @@ dependencies:
   flutter_v2ray_client: ^3.5.0
   shared_preferences: ^2.2.2
   file_picker: ^6.2.0
-  cupertino_icons: ^1.0.2
+    cupertino_icons: ^1.0.2
+    home_widget: ^0.8.0
 
 dev_dependencies:
   flutter_test:
