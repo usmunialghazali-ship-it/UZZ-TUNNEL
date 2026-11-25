@@ -3,37 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_v2ray/flutter_v2ray.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() => runApp(const MaterialApp(home: TunnelApp(), debugShowCheckedModeBanner: false));
+void main() => runApp(MaterialApp(home: Home(), debugShowCheckedModeBanner: false));
 
-class TunnelApp extends StatefulWidget {
-  const TunnelApp({super.key});
-  @override
-  State<TunnelApp> createState() => _TunnelAppState();
+class Home extends StatefulWidget {
+  @override _HomeState createState() => _HomeState();
 }
 
-class _TunnelAppState extends State<TunnelApp> {
-  late FlutterV2ray v2ray;
+class _HomeState extends State<Home> {
   List<Map<String, dynamic>> configs = [];
   int selected = 0;
-  bool isConnecting = false;
   bool connected = false;
-  String status = "DISCONNECTED";
+  String status = "Belum terhubung";
+  final v2ray = FlutterV2ray(
+    onStatusChanged: (s) {},
+  );
 
-  @override
-  void initState() {
-    super.initState();
-    v2ray = FlutterV2ray(onStatusChanged: (s) {
-  setState(() {
-    connected = s.state.toString().toLowerCase().contains('connected');
-    status = connected ? "CONNECTED" : "DISCONNECTED";
-  });
-});
-    loadConfigs();
-  }
+  @override void initState() { super.initState(); loadConfigs(); }
 
   Future<void> loadConfigs() async {
     final prefs = await SharedPreferences.getInstance();
-    final data = prefs.getString('configs');
+    var data = prefs.getString('configs');
     if (data != null) {
       setState(() => configs = List<Map<String, dynamic>>.from(jsonDecode(data)));
     }
@@ -44,123 +33,120 @@ class _TunnelAppState extends State<TunnelApp> {
     prefs.setString('configs', jsonEncode(configs));
   }
 
-    void deleteConfig(int i) {
-    setState(() {
-      configs.removeAt(i);
-      if (selected >= configs.length) selected = 0;
-      if (configs.isEmpty) {
-        connected = false;
-        status = "Belum terhubung";
-      }
-    });
-    saveConfigs();
-  }
-
   void parseAndAdd(String text) {
     String link = text.trim();
-    if (link.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Config kosong")));
-      return;
-    }
-    String name = "";
+    if (link.isEmpty) return;
     try {
-      if (link.startsWith("eyJ")) {
-        link = "vmess://$link";
-      } else if (link.startsWith("{")) {
-        final Map m = jsonDecode(link);
-        String b64 = base64.encode(utf8.encode(jsonEncode(m)));
-        link = "vmess://$b64";
-      }
-      if (link.startsWith("vmess://")) {
+      Map<String, dynamic> vmess;
+      String name = "";
+      if (link.startsWith('vmess://')) {
         String b64 = link.substring(8).trim();
-        b64 = b64.replaceAll("-", "+").replaceAll("_", "/");
-        while (b64.length % 4 != 0) b64 += "=";
-        final Map m = jsonDecode(utf8.decode(base64.decode(b64)));
-        name = (m["ps"] ?? "").toString();
+        b64 = b64.replaceAll('-', '+').replaceAll('_', '/');
+        while (b64.length % 4 != 0) b64 += '=';
+        vmess = jsonDecode(utf8.decode(base64Decode(b64)));
+        name = vmess['ps'] ?? '';
+      } else if (link.startsWith('{')) {
+        vmess = jsonDecode(link);
+        name = vmess['ps'] ?? '';
+      } else if (link.startsWith('ey')) {
+        String b64 = link;
+        while (b64.length % 4 != 0) b64 += '=';
+        vmess = jsonDecode(utf8.decode(base64Decode(b64)));
+        name = vmess['ps'] ?? '';
+      } else {
+        throw 'Format tidak dikenal';
       }
-      if (name.isEmpty) {
-        Uri uri = Uri.parse(link);
-        name = uri.fragment.isNotEmpty
-            ? Uri.decodeComponent(uri.fragment)
-            : link.length > 20 ? link.substring(0, 20) : link;
-      }
+      if (name.isEmpty) name = link.length > 20 ? link.substring(0, 20) : link;
+      setState(() { configs.add({"name": name, "vmess": vmess}); });
+      saveConfigs();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Config tidak valid: $e")));
-      return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Link salah: $e')));
     }
-    setState(() {
-      configs.add({"name": name.isEmpty ? "Config" : name, "link": link});
+  }
+
+  String buildV2rayConfig(Map<String, dynamic> v) {
+    return jsonEncode({
+      "log": {"loglevel": "warning"},
+      "inbounds": [{
+        "port": 10808, "listen": "127.0.0.1", "protocol": "socks",
+        "settings": {"auth": "noauth", "udp": true}
+      }],
+      "outbounds": [{
+        "protocol": "vmess",
+        "settings": {"vnext": [{
+          "address": v['add'],
+          "port": int.parse(v['port'].toString()),
+          "users": [{
+            "id": v['id'],
+            "alterId": int.parse((v['aid'] ?? '0').toString()),
+            "security": v['scy'] ?? 'auto'
+          }]
+        }]},
+        "streamSettings": {
+          "network": v['net'] ?? 'tcp',
+          "security": v['tls'] ?? '',
+          "wsSettings": {"path": v['path'] ?? '/', "headers": {"Host": v['host'] ?? ''}},
+          "tlsSettings": {"serverName": (v['sni'] ?? v['host'] ?? v['add']).toString()}
+        }
+      }]
     });
-    saveConfigs();
   }
 
   Future<void> toggleConnect() async {
-    if (configs.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Tambah config dulu!")));
+    if (configs.isEmpty) return;
+    if (connected) {
+      await v2ray.stopV2ray();
+      setState(() { connected = false; status = "Belum terhubung"; });
       return;
     }
-    if (connected) {
-      await v2ray.stopV2Ray();
-    } else {
-      bool granted = await v2ray.requestPermission();
-      if (!granted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Izin VPN ditolak!")));
-        return;
-      }
-      try {
-        await v2ray.startV2Ray(
-          remark: configs[selected]['name'],
-          config: configs[selected]['link'],
-          proxyOnly: false,
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Gagal konek: $e")));
-      }
+    bool granted = await v2ray.requestPermission();
+    if (!granted) return;
+    try {
+      var v = configs[selected]['vmess'];
+      String fullConfig = buildV2rayConfig(v);
+      await v2ray.startV2ray(
+        remark: configs[selected]['name'],
+        config: fullConfig,
+        proxyOnly: false,
+      );
+      setState(() { connected = true; status = "Connected"; });
+    } catch (e) {
+      setState(() => status = "Gagal: $e");
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  @override Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
-      appBar: AppBar(title: const Text("UZZ TUNNEL", style: TextStyle(fontWeight: FontWeight.bold)), backgroundColor: const Color(0xFF0F172A), centerTitle: true),
-      body: Column(children: [
-        const SizedBox(height: 20),
-        CircleAvatar(radius: 60, backgroundColor: connected ? Colors.green : Colors.grey, child: const Icon(Icons.power_settings_new, size: 60, color: Colors.white)),
-        const SizedBox(height: 10),
-        Text(status, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 20),
-        Expanded(child: ListView.builder(
-          itemCount: configs.length,
-          itemBuilder: (c, i) => ListTile(
-            onTap: () => setState(() => selected = i),
-            leading: Icon(Icons.check_circle, color: selected == i ? Colors.blue : Colors.grey),
-            title: Text(configs[i]['name'], style: const TextStyle(color: Colors.white)),
-     subtitle: const Text("Tap untuk pilih", style: TextStyle(color: Colors.grey)),
-trailing: IconButton(
-  icon: const Icon(Icons.delete, color: Colors.red),
-  onPressed: () => deleteConfig(i),
-)
+      appBar: AppBar(title: Text("UZZ TUNNEL")),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(children: [
+          Text(status, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          SizedBox(height: 16),
+          TextField(
+            decoration: InputDecoration(hintText: "Paste vmess:// disini", border: OutlineInputBorder()),
+            onSubmitted: parseAndAdd,
           ),
-        )),
-        Padding(padding: const EdgeInsets.all(16), child: Column(children: [
-          ElevatedButton(onPressed: toggleConnect, style: ElevatedButton.styleFrom(backgroundColor: connected ? Colors.red : Colors.green, minimumSize: const Size(double.infinity, 50)), child: Text(connected ? "DISCONNECT" : "CONNECT")),
-          const SizedBox(height: 10),
-          Row(children: [
-            Expanded(child: ElevatedButton(onPressed: () {
-              String input = "";
-              showDialog(context: context, builder: (_) => AlertDialog(title: const Text("Tambah Config"), content: TextField(onChanged: (v) => input = v, decoration: const InputDecoration(hintText: "Paste vless://...")), actions: [TextButton(onPressed: () { Navigator.pop(context); parseAndAdd(input); }, child: const Text("SIMPAN"))]));
-            }, child: const Text("+ TAMBAH"))),
-            const SizedBox(width: 10),
-            Expanded(child: ElevatedButton(onPressed: () {
-              String input = "";
-              showDialog(context: context, builder: (_) => AlertDialog(title: const Text("Import Config"), content: TextField(maxLines: 5, onChanged: (v) => input = v, decoration: const InputDecoration(hintText: "Paste isi file .txt")), actions: [TextButton(onPressed: () { Navigator.pop(context); for (var line in input.split('\n')) { if (line.trim().startsWith('vless://') || line.trim().startsWith('vmess://')) parseAndAdd(line.trim()); } }, child: const Text("IMPORT"))]));
-            }, style: ElevatedButton.styleFrom(backgroundColor: Colors.purple), child: const Text("IMPORT CONFIG"))),
-          ]),
-        ])),
-      ]),
+          SizedBox(height: 10),
+          ElevatedButton(onPressed: () => showDialog(context: context, builder: (_) {
+            var c = TextEditingController();
+            return AlertDialog(title: Text("Tambah Config"), content: TextField(controller: c), actions: [TextButton(onPressed: () { parseAndAdd(c.text); Navigator.pop(context); }, child: Text("Tambah"))]);
+          }), child: Text("Tambah Config")),
+          Expanded(child: ListView.builder(
+            itemCount: configs.length,
+            itemBuilder: (_, i) => ListTile(
+              title: Text(configs[i]['name']),
+              selected: i == selected,
+              onTap: () => setState(() => selected = i),
+              trailing: IconButton(icon: Icon(Icons.delete), onPressed: () { setState(() => configs.removeAt(i)); saveConfigs(); }),
+            ),
+          )),
+          SizedBox(width: double.infinity, child: ElevatedButton(
+            onPressed: toggleConnect,
+            child: Text(connected ? "DISCONNECT" : "CONNECT"),
+          )),
+        ]),
+      ),
     );
   }
 }
