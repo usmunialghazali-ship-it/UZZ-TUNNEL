@@ -18,7 +18,7 @@ jobs:
           channel: 'stable'
           cache: true   
        - uses: android-actions/setup-android@v3
-     with:
+        with:
        api-level: 35
        build-tools: 35.0.0
       - name: Generate Android folder
