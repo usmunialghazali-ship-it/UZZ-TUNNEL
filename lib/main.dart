@@ -15,10 +15,9 @@ class _HomeState extends State<Home> {
   int selected = 0;
   bool connected = false;
   String status = "Disconnected";
-  final v2ray = FlutterV2Ray(
-    onStatusChanged: (s) {},
-    onProxyError: (e) {},
-  );
+  final v2ray = V2ray(
+  onStatusChanged: (status) {},
+);
 
   @override
   void initState() {
