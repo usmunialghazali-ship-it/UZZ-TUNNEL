@@ -16,12 +16,18 @@ class _HomeState extends State<Home> {
   bool connected = false;
   String status = "Disconnected";
   final v2ray = V2ray(
-  onStatusChanged: (status) {},
+    onStatusChanged: (status) {
+    setState(() {
+      connected = status.state == 'CONNECTED';
+      if (connected) status = "Connected";
+    });
+  },
 );
 
   @override
   void initState() {
     super.initState();
+    v2ray.initializeV2Ray();
     loadConfigs();
   }
 
