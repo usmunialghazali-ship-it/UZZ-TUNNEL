@@ -142,7 +142,14 @@ class _HomeState extends State<Home> {
             ),
           )),
           SizedBox(width: double.infinity, child: ElevatedButton(
-            onPressed: toggleConnect,
+            onPressed: toggleConnect,style: ElevatedButton.styleFrom(
+  backgroundColor: connected ? Colors.red : Color(0xFF00C853),
+  foregroundColor: Colors.white,
+  minimumSize: Size(double.infinity, 55),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(30),
+  ),
+),
             child: Text(connected ? "DISCONNECT" : "CONNECT"),
           )),
         ]),
