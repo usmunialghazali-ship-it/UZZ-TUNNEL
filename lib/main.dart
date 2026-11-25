@@ -113,12 +113,16 @@ class _HomeState extends State<Home> {
       setState(() => status = "Connecting...");
       final fullConfig = configs[selected]['config'].toString();
       await Future.delayed(Duration(seconds: 1));
+      final granted = await v2ray.requestPermission();
+if (!granted) {
+  setState(() => status = "Izin VPN ditolak");
+  return;
+}
       await v2ray.startV2Ray(
         remark: configs[selected]['name'],
         config: fullConfig,
         proxyOnly: false,
       );
-      setState(() { connected = true; status = "Connected - ${configs[selected]['name']}"; });
     } catch (e) {
       setState(() => status = "Gagal: $e");
     }
