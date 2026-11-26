@@ -179,6 +179,7 @@ downSpeed = '${(status.downloadSpeed / 1024).toStringAsFixed(1)} KB/s';
     setState(() => logText = 'Import gagal: $e');
   }
   }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
