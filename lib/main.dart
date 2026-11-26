@@ -27,6 +27,7 @@ class _HomeState extends State<Home> {
     super.initState();
     v2ray = V2ray(onStatusChanged: (s) {
       if (!mounted) return;
+      if (s.state == 'connecting') return;
       setState(() {
         // state: connected / disconnected
         connected = s.state == 'connected';
