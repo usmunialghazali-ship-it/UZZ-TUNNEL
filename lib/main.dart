@@ -63,6 +63,7 @@ class _HomeState extends State<Home> {
 
   Future<void> toggle() async {
   if (connecting) {
+    _isManualStop = true;
     try { await v2ray.stopV2Ray(); } catch (_) {}
     timer?.cancel();
     timer = null;
@@ -83,6 +84,7 @@ class _HomeState extends State<Home> {
     return;
   }
   if (connected) {
+    _isManualStop = tru;
     try { await v2ray.stopV2Ray(); } catch (_) {}
     timer?.cancel();
     timer = null;
@@ -96,7 +98,7 @@ class _HomeState extends State<Home> {
     });
     return;
   }
-
+_isManualStop = false;
   setState(() { connecting = true; status = 'Connecting...'; });
   try {
     final parser = V2ray.parseFromURL(servers[selected]);
