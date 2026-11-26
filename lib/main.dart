@@ -44,6 +44,7 @@ class _HomePageState extends State<HomePage> {
   int selected = 0;
   bool isConnected = false;
   bool isConnecting = false;
+  bool _manualStop = false;
   String statusText = 'Disconnected';
   String upSpeed = '0 KB/s';
   String downSpeed = '0 KB/s';
@@ -57,14 +58,15 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     v2ray = V2ray(onStatusChanged: (status) {
       if (!mounted) return;
+      if (_manualStop) return;
       setState(() {
         isConnected = status.state == 'CONNECTED';
         duration = status.duration;
         upSpeed = '${(status.uploadSpeed / 1024).toStringAsFixed(1)} KB/s';
 downSpeed = '${(status.downloadSpeed / 1024).toStringAsFixed(1)} KB/s';
       
-        if (isConnected) { statusText = 'Connected'; isConnecting = false; }
-      });
+    if (isConnected) { statusText = 'Connected'; isConnecting = false; } else { statusText = 'Disconnected'; isConnecting = false; _stopTimer(); }
+    });    
     });
     _initV2ray();
     _loadServers();
@@ -106,8 +108,10 @@ downSpeed = '${(status.downloadSpeed / 1024).toStringAsFixed(1)} KB/s';
   Future<void> _toggleConnect() async {
     if (servers.isEmpty || selected >= servers.length) return;
     if (isConnected || isConnecting) {
+      _manualStop = true;
       try { await v2ray.stopV2Ray(); } catch (_) {}
-      setState(() { isConnected = false; isConnecting = false; statusText = 'Disconnected'; logText = 'Disconnected.'; });
+      setState(() { isConnected = false; isConnecting = false; stif (isConnected) { statusText = 'Connected'; isConnecting = false; }
+      });atusText = 'Disconnected'; logText = 'Disconnected.'; });
       return;
     }
     final server = servers[selected];
@@ -115,6 +119,7 @@ downSpeed = '${(status.downloadSpeed / 1024).toStringAsFixed(1)} KB/s';
       setState(() => logText = 'Link server kosong. Edit / tambah server dulu.');
       return;
     }
+    _manualStop = false;
     setState(() { isConnecting = true; statusText = 'Connecting...'; logText = 'Connecting to ${server.name}...'; });
     try {
       final config = _getConfig(server.link.trim());
