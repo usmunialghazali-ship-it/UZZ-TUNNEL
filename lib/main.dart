@@ -83,6 +83,13 @@ class _HomeState extends State<Home> {
       final parser = V2ray.parseFromURL(servers[selected]);
       if (!await v2ray.requestPermission()) { setState(() { connecting = false; status = 'Permission ditolak'; }); return; }
       setState(() { connecting = false; connected = true; status = 'Connected'; });
+      startTime = DateTime.now();
+timer?.cancel();
+timer = Timer.periodic(const Duration(seconds: 1), (_) {
+  final d = DateTime.now().difference(startTime);
+  setState(() { time = '${d.inHours.toString().padLeft(2, '0')}:${(d.inMinutes % 60).toString().padLeft(2, '0')}:${(d.inSeconds % 60).toString().padLeft(2, '0')}'; });
+});
+v2ray.startV2Ray(remark: parser.remark, config: parser.getFullConfiguration());
       
     } catch (e) {
       setState(() { connecting = false; status = 'Failed: $e'; });
