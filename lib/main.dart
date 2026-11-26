@@ -84,7 +84,7 @@ class _HomeState extends State<Home> {
     return;
   }
   if (connected) {
-    _isManualStop = tru;
+    _isManualStop = true;
     try { await v2ray.stopV2Ray(); } catch (_) {}
     timer?.cancel();
     timer = null;
