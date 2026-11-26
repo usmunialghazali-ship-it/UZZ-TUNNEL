@@ -27,12 +27,12 @@ class _HomeState extends State<Home> {
     super.initState();
     v2ray = V2ray(onStatusChanged: (s) {
       if (!mounted) return;
-      if (s.state.tolowerCase() == 'connecting') return;
+      if (s.state.toLowerCase() == 'connecting') return;
       setState(() {
         // state: connected / disconnected
-        connected = s.state.tolowerCase() == 'connected';
+        connected = s.state.toLowerCase() == 'connected';
         if (connected) { connecting = false; status = 'Connected'; }
-        if (s.state.tolowerCase() == 'disconnected') { status = 'Ready'; up = '0 B/s'; down = '0 B/s'; time = '00:00:00'; timer?.cancel(); }
+        if (s.state.toLowerCase() == 'disconnected') { status = 'Ready'; up = '0 B/s'; down = '0 B/s'; time = '00:00:00'; timer?.cancel(); }
         up = '${s.uploadSpeed}';
         down = '${s.downloadSpeed}';
       });
