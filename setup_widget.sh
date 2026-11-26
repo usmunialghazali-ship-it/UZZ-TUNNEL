@@ -33,6 +33,8 @@ cat > $RES/xml/widget_info.xml <<'XML'
     android:resizeMode="none"
     android:widgetCategory="home_screen" />
 XML
+python3 << 'PY'
+import pathlib
 p = pathlib.Path("android/app/src/main/AndroidManifest.xml")
 t = p.read_text()
 receiver = '''<receiver android:name=".UzzWidgetProvider" android:exported="false">
@@ -56,7 +58,6 @@ class UzzWidgetProvider : AppWidgetProvider() {
     for (id in appWidgetIds) {
       val widgetData = HomeWidgetPlugin.getData(context)
       val views = RemoteViews(context.packageName, R.layout.widget_layout)
-      views.setTextViewText(R.id.widget_status, widgetData.getString("status", "Disconnected"))
       appWidgetManager.updateAppWidget(id, views)
     }
   }
