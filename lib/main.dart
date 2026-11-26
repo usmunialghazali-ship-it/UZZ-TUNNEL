@@ -165,14 +165,20 @@ downSpeed = '${(status.downloadSpeed / 1024).toStringAsFixed(1)} KB/s';
   }
 
   Future<void> _importFromFile() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.any);
-    if (result == null || result.files.single.path == null) return;
-    try {
-      final content = await Clipboard.getData('text/plain');
-      setState(() => logText = 'File picked: ${result.files.single.name}. Paste link di Add Server ya.');
-    } catch (e) { setState(() => logText = 'Import gagal: $e'); }
+  final result = await FilePicker.platform.pickFiles();
+  if (result == null || result.files.single.path == null) return;
+  try {
+    final content = await File(result.files.single.path!).readAsString();
+    final lines = content.split('\n').where((l) => l.trim().isNotEmpty).toList();
+    setState(() {
+      servers = lines;
+      logText = 'Imported ${lines.length} servers';
+    });
+    await _saveServers();
+  } catch (e) {
+    setState(() => logText = 'Import gagal: $e');
   }
-}
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
