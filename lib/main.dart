@@ -110,11 +110,10 @@ class _HomeState extends State<Home> {
         time = '${d.inHours.toString().padLeft(2, '0')}:${(d.inMinutes % 60).toString().padLeft(2, '0')}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
       });
     });
-    final ok = await v2ray.startV2Ray(
-      remark: parser.remark,
-      config: parser.getFullConfiguration(),
-    );
-    if (!ok) throw Exception('start gagal');
+    await v2ray.startV2Ray(
+  remark: parser.remark,
+  config: parser.getFullConfiguration(),
+);
     setState(() {
       connecting = false;
       connected = true;
@@ -163,7 +162,7 @@ class _HomeState extends State<Home> {
           decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(16)),
           child: Column(children: [
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(connected ? 'Connected' : connecting ? 'Connecting...' : 'Ready', style: TextStyle(color: connected ? Colors.green : Colors.red, fontSize: 20, fontWeight: FontWeit.bold)),
+            Text(connected ? 'Connected' : connecting ? 'Connecting...' : 'Ready', style: TextStyle(color: connected ? Colors.green : Colors.red, fontSize: 20, fontWeight: FontWeight.bold)),
 GestureDetector(
 onTap: toggle,
 child: Container(
