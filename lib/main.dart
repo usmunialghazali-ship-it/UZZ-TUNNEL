@@ -59,6 +59,13 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> toggle() async {
+      // KALO LAGI CONNECTING, PENCET = BATALIN
+  if (connecting) {
+    try { await v2ray.stopV2Ray(); } catch (_) {}
+    timer?.cancel();
+    setState(() { connecting = false; connected = false; status = 'Ready'; up = '0 B/s'; down = '0 B/s'; time = '00:00:00'; });
+    return;
+  }
     if (servers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Add server dulu pake tombol +')));
       return;
@@ -117,7 +124,7 @@ class _HomeState extends State<Home> {
           child: Column(children: [
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Text(status, style: TextStyle(color: connected ? Colors.green : Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-              GestureDetector(onTap: connecting ? null : toggle,
+              GestureDetector(onTap: toggle,
                 child: Container(width: 72, height: 72, decoration: BoxDecoration(shape: BoxShape.circle, color: connected ? Colors.green : Colors.grey[800], border: Border.all(color: Colors.white24)),
                   child: Icon(connecting ? Icons.hourglass_top : Icons.power_settings_new, color: Colors.white, size: 36))),
             ]),
