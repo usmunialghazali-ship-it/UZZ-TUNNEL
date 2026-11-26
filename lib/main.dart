@@ -137,8 +137,7 @@ v2ray.startV2Ray(remark: parser.remark, config: parser.getFullConfiguration());
                                                    FontWeight.bold)),
                 child: Container(width: 72, height: 72, decoration: BoxDecoration(shape: BoxShape.circle, color: connected ? Colors.green : Colors.grey[800], border: Border.all(color: Colors.white24)),
                   child: Icon(connecting ? Icons.hourglass_top : Icons.power_settings_new, color: Colors.white, size: 36))),
-            ]),
-            ),
+            ]))),
             const SizedBox(height: 12),
             Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
               _stat('UP', up), _stat('DOWN', down), _stat('TIME', time),
