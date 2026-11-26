@@ -132,12 +132,16 @@ v2ray.startV2Ray(remark: parser.remark, config: parser.getFullConfiguration());
           decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(16)),
           child: Column(children: [
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(status, style: TextStyle(color: connected ? Colors.green :2
-              GestureDetector(onTap: toggle,       Colors.white,fontSize: 20, fontWeight:
-                                                   FontWeight.bold)),
-                child: Container(width: 72, height: 72, decoration: BoxDecoration(shape: BoxShape.circle, color: connected ? Colors.green : Colors.grey[800], border: Border.all(color: Colors.white24)),
-                  child: Icon(connecting ? Icons.hourglass_top : Icons.power_settings_new, color: Colors.white, size: 36))),
-            ]),
+            Text(status, style: TextStyle(color: connected ? Colors.green : Colors.red, fontSize: 20, fontWeight: FontWeight.bold)),
+GestureDetector(
+onTap: toggle,
+child: Container(
+width: 72, height: 72,
+decoration: BoxDecoration(shape: BoxShape.circle, color: connected ? Colors.green : Colors.grey[800], border: Border.all(color: Colors.white24)),
+child: Icon(connecting ? Icons.hourglass_top : Icons.power_settings_new, color: Colors.white, size: 32),
+),
+),
+]),
             const SizedBox(height: 12),
             Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
               _stat('UP', up), _stat('DOWN', down), _stat('TIME', time),
