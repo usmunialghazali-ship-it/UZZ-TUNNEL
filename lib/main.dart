@@ -1,173 +1,147 @@
-import 'dart:convert';
-import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_v2ray_client/flutter_v2ray.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:file_picker/file_picker.dart';
 
-void main() => runApp(const MyApp());
+void main() => runApp(const MaterialApp(home: Home(), debugShowCheckedModeBanner: false));
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'UZZ TUNNEL',
-      theme: ThemeData.dark(),
-      home: const MyHomePage(),
-    );
-  }
+class Home extends StatefulWidget {
+  const Home({super.key});
+  @override State<Home> createState() => _HomeState();
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
+class _HomeState extends State<Home> {
+  late V2ray v2ray;
   List<String> servers = [];
   int selected = 0;
-  String logText = 'Ready';
-  bool isPinging = false;
+  bool connected = false;
+  bool connecting = false;
+  String status = 'Ready';
+  String up = '0 B/s', down = '0 B/s', time = '00:00:00';
+  Map<String, String> pings = {};
+  Timer? timer;
+  DateTime? startTime;
 
   @override
   void initState() {
     super.initState();
-    _loadServers();
+    v2ray = V2ray(onStatusChanged: (s) {
+      if (!mounted) return;
+      setState(() {
+        // state: connected / disconnected
+        connected = s.state == 'connected';
+        if (connected) { connecting = false; status = 'Connected'; }
+        if (s.state == 'disconnected') { status = 'Ready'; up = '0 B/s'; down = '0 B/s'; time = '00:00:00'; timer?.cancel(); }
+        up = '${s.uploadSpeed}';
+        down = '${s.downloadSpeed}';
+      });
+    });
+    _init();
   }
 
-  Future<void> _loadServers() async {
-    final prefs = await SharedPreferences.getInstance();
+  Future<void> _init() async {
+    await v2ray.initialize();
+    final p = await SharedPreferences.getInstance();
     setState(() {
-      servers = prefs.getStringList('servers') ?? [];
-      selected = prefs.getInt('selected') ?? 0;
+      servers = p.getStringList('servers') ?? [];
+      selected = p.getInt('selected') ?? 0;
     });
   }
 
-  Future<void> _saveServers() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('servers', servers);
-    await prefs.setInt('selected', selected);
+  Future<void> _save() async {
+    final p = await SharedPreferences.getInstance();
+    p.setStringList('servers', servers);
+    p.setInt('selected', selected);
   }
 
-  Future<void> _pingAll() async {
-    if (servers.isEmpty) return;
-    setState(() {
-      isPinging = true;
-      logText = 'Pinging...';
-    });
-    List<String> results = [];
-    for (var s in servers) {
-      try {
-        final host = s.split(':').first.split('@').last;
-        final port = int.tryParse(s.split(':').last) ?? 22;
-        final socket = await Socket.connect(host, port, timeout: const Duration(seconds: 3));
-        socket.destroy();
-        results.add('$s : ONLINE');
-      } catch (e) {
-        results.add('$s : OFFLINE');
-      }
+  String nameOf(String link) {
+    try { return V2ray.parseFromURL(link).remark; } catch (_) { return 'Server'; }
+  }
+
+  Future<void> toggle() async {
+    if (servers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Add server dulu pake tombol +')));
+      return;
     }
-    setState(() {
-      isPinging = false;
-      logText = results.join('\n');
-    });
+    if (connected) { await v2ray.stopV2Ray(); return; }
+
+    setState(() { connecting = true; status = 'Connecting...'; });
+    try {
+      final parser = V2ray.parseFromURL(servers[selected]);
+      if (!await v2ray.requestPermission()) { setState(() { connecting = false; status = 'Permission ditolak'; }); return; }
+      await v2ray.startV2Ray(remark: parser.remark, config: parser.getFullConfiguration(), proxyOnly: false);
+      startTime = DateTime.now();
+      timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        final d = DateTime.now().difference(startTime!);
+        setState(() { time = '${d.inHours.toString().padLeft(2, '0')}:${(d.inMinutes % 60).toString().padLeft(2, '0')}:${(d.inSeconds % 60).toString().padLeft(2, '0')}'; });
+      });
+    } catch (e) {
+      setState(() { connecting = false; status = 'Failed: $e'; });
+    }
   }
 
-  void _showAddDialog() {
+  void addServer() {
     final c = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Add Server'),
-        content: TextField(controller: c, decoration: const InputDecoration(hintText: 'user@host:port')),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              if (c.text.trim().isNotEmpty) {
-                setState(() => servers.add(c.text.trim()));
-                _saveServers();
-              }
-              Navigator.pop(ctx);
-            },
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
+    showDialog(context: context, builder: (_) => AlertDialog(
+      title: const Text('Add Server'),
+      content: TextField(controller: c, maxLines: 4, decoration: const InputDecoration(hintText: 'Paste vmess:// / vless:// ...')),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+        ElevatedButton(onPressed: () {
+          if (c.text.trim().isNotEmpty) { setState(() { servers.add(c.text.trim()); }); _save(); }
+          Navigator.pop(context);
+        }, child: const Text('Add')),
+      ],
+    ));
   }
 
-  Future<void> _importFromFile() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.any);
-    if (result != null && result.files.single.path != null) {
+  Future<void> pingAll() async {
+    for (var link in servers) {
       try {
-        final content = await File(result.files.single.path!).readAsString();
-        final lines = content.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-        setState(() {
-          servers = lines;
-          logText = 'Imported ${lines.length} servers';
-        });
-        await _saveServers();
-      } catch (e) {
-        setState(() => logText = 'Import failed: $e');
-      }
-    }
-  }
-
-  Future<void> _exportServers() async {
-    if (servers.isEmpty) return;
-    final result = await FilePicker.platform.saveFile(fileName: 'servers.txt');
-    if (result != null) {
-      await File(result).writeAsString(servers.join('\n'));
-      setState(() => logText = 'Exported to $result');
+        final cfg = V2ray.parseFromURL(link).getFullConfiguration();
+        final ms = await v2ray.getServerDelay(config: cfg);
+        setState(() { pings[link] = '$ms ms'; });
+      } catch (_) { setState(() { pings[link] = 'fail'; }); }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('UZZ TUNNEL'),
-        actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _pingAll),
-          IconButton(icon: const Icon(Icons.file_upload), onPressed: _importFromFile),
-          IconButton(icon: const Icon(Icons.file_download), onPressed: _exportServers),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: servers.length,
-              itemBuilder: (context, i) {
-                return ListTile(
-                  leading: Icon(Icons.dns, color: selected == i ? Colors.green : Colors.grey),
-                  title: Text(servers[i]),
-                  selected: selected == i,
-                  onTap: () => setState(() => selected = i),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20, color: Colors.grey),
-                    onPressed: () {
-                      setState(() => servers.removeAt(i));
-                      _saveServers();
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-          Container(
-            width: double.infinity,
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(12)),
-            child: Text(logText, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(onPressed: _showAddDialog, child: const Icon(Icons.add)),
+      backgroundColor: const Color(0xFF121212),
+      appBar: AppBar(backgroundColor: const Color(0xFF121212), title: const Text('UZZ TUNNEL', style: TextStyle(color: Colors.white)),
+        actions: [IconButton(onPressed: pingAll, icon: const Icon(Icons.refresh, color: Colors.white))]),
+      body: Column(children: [
+        Container(margin: const EdgeInsets.all(16), padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(16)),
+          child: Column(children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text(status, style: TextStyle(color: connected ? Colors.green : Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              GestureDetector(onTap: connecting ? null : toggle,
+                child: Container(width: 72, height: 72, decoration: BoxDecoration(shape: BoxShape.circle, color: connected ? Colors.green : Colors.grey[800], border: Border.all(color: Colors.white24)),
+                  child: Icon(connecting ? Icons.hourglass_top : Icons.power_settings_new, color: Colors.white, size: 36))),
+            ]),
+            const SizedBox(height: 12),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+              _stat('UP', up), _stat('DOWN', down), _stat('TIME', time),
+            ]),
+            const SizedBox(height: 8),
+            Text(servers.isEmpty ? 'Belum ada server' : nameOf(servers[selected]), style: const TextStyle(color: Colors.white70)),
+          ])),
+        Expanded(child: ListView.builder(itemCount: servers.length, itemBuilder: (_, i) => ListTile(
+          onTap: () => setState(() => selected = i),
+          leading: Icon(selected == i ? Icons.radio_button_checked : Icons.radio_button_off, color: Colors.green),
+          title: Text(nameOf(servers[i]), style: const TextStyle(color: Colors.white)),
+          subtitle: Text(servers[i].length > 40 ? '${servers[i].substring(0, 40)}...' : servers[i], style: const TextStyle(color: Colors.white54, fontSize: 11)),
+          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            Text(pings[servers[i]] ?? '-- ms', style: const TextStyle(color: Colors.white70)),
+            IconButton(onPressed: () { setState(() { servers.removeAt(i); }); _save(); }, icon: const Icon(Icons.delete, color: Colors.red)),
+          ]),
+        ))),
+      ]),
+      floatingActionButton: FloatingActionButton(onPressed: addServer, backgroundColor: Colors.deepPurple, child: const Icon(Icons.add)),
     );
   }
+
+  Widget _stat(String l, String v) => Column(children: [Text(l, style: const TextStyle(color: Colors.white54)), Text(v, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))]);
 }
