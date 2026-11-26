@@ -16,6 +16,7 @@ class _HomeState extends State<Home> {
   int selected = 0;
   bool connected = false;
   bool connecting = false;
+  bool _isManualStop = false;
   String status = 'Ready';
   String up = '0 B/s', down = '0 B/s', time = '00:00:00';
   Map<String, String> pings = {};
@@ -27,6 +28,7 @@ class _HomeState extends State<Home> {
     super.initState();
     v2ray = V2ray(onStatusChanged: (s) {
       if (!mounted) return;
+      if (_isManualStop && s.state.tolowerCase() == 'connected') return;
       if (s.state.toLowerCase() == 'connecting') return;
       setState(() {
         // state: connected / disconnected
