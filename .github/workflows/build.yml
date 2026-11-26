@@ -28,6 +28,7 @@ jobs:
           cp /tmp/main.dart.bak lib/main.dart
           cp /tmp/pubspec.yaml.bak pubspec.yaml
           flutter pub get
+          flutter pub run flutter_launcher_icons
           flutter build apk --release --split-per-abi
       - name: Upload APK
         uses: actions/upload-artifact@v4
