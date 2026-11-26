@@ -172,7 +172,7 @@ downSpeed = '${(status.downloadSpeed / 1024).toStringAsFixed(1)} KB/s';
       setState(() => logText = 'File picked: ${result.files.single.name}. Paste link di Add Server ya.');
     } catch (e) { setState(() => logText = 'Import gagal: $e'); }
   }
-
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
