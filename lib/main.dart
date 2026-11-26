@@ -83,6 +83,7 @@ class _HomeState extends State<Home> {
       final parser = V2ray.parseFromURL(servers[selected]);
       if (!await v2ray.requestPermission()) { setState(() { connecting = false; status = 'Permission ditolak'; }); return; }
       await v2ray.startV2Ray(remark: parser.remark, config: parser.getFullConfiguration(), proxyOnly: false);
+      setState(() { connecting = false; connected = true; status = 'Connected'; });
       startTime = DateTime.now();
       timer = Timer.periodic(const Duration(seconds: 1), (_) {
         final d = DateTime.now().difference(startTime!);
