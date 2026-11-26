@@ -5,40 +5,34 @@ RES="android/app/src/main/res"
 mkdir -p $RES/layout $RES/xml
 cat > $RES/layout/widget_layout.xml <<'XML'
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#1A1A2E"
-    android:padding="12dp">
-    <TextView android:id="@+id/widget_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="UZZ TUNNEL"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        android:textSize="16sp" />
-    <TextView android:id="@+id/widget_status"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Disconnected"
-        android:textColor="#FFAAAAAA"
-        android:textSize="14sp" />
-</LinearLayout>
+    android:background="#1A1A2E">
+    <ImageView
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_gravity="center"
+        android:src="@mipmap/ic_launcher" />
+    <View
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="6dp"
+        android:layout_marginBottom="6dp"
+        android:background="#FF3B30" />
+</FrameLayout>
 XML
 cat > $RES/xml/widget_info.xml <<'XML'
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="180dp"
-    android:minHeight="110dp"
+    android:minWidth="72dp"
+    android:minHeight="72dp"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/widget_layout"
-    android:resizeMode="horizontal|vertical"
+    android:resizeMode="none"
     android:widgetCategory="home_screen" />
 XML
-if ! grep -q "UzzWidgetProvider" $MANIFEST; then
-python3 - <<'PY'
-import pathlib
 p = pathlib.Path("android/app/src/main/AndroidManifest.xml")
 t = p.read_text()
 receiver = '''<receiver android:name=".UzzWidgetProvider" android:exported="false">
