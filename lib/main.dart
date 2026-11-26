@@ -70,7 +70,12 @@ class _HomeState extends State<Home> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Add server dulu pake tombol +')));
       return;
     }
-    if (connected) { await v2ray.stopV2Ray(); return; }
+    if (connected) {
+  try { await v2ray.stopV2Ray(); } catch (_) {}
+  timer?.cancel();
+  setState(() { connected = false; connecting = false; status = 'Ready'; up = '0 B/s'; down = '0 B/s'; time = '00:00:00'; });
+  return;
+    }
 
     setState(() { connecting = true; status = 'Connecting...'; });
     try {
