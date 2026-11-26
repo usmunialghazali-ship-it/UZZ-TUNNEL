@@ -60,42 +60,7 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> toggle() async {
-      // KALO LAGI CONNECTING, PENCET = BATALIN
-  if (connecting) {
-    try { await v2ray.stopV2Ray(); } catch (_) {}
-    timer?.cancel();
-    setState(() { connecting = false; connected = false; status = 'Ready'; up = '0 B/s'; down = '0 B/s'; time = '00:00:00'; });
-    return;
-  }
-    if (servers.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Add server dulu pake tombol +')));
-      return;
-    }
-    if (connected) {
-  try { await v2ray.stopV2Ray(); } catch (_) {}
-  timer?.cancel();
-  setState(() { connected = false; connecting = false; status = 'Ready'; up = '0 B/s'; down = '0 B/s'; time = '00:00:00'; });
-  return;
-    }
-
-    setState(() { connecting = true; status = 'Connecting...'; });
-    try {
-      final parser = V2ray.parseFromURL(servers[selected]);
-      if (!await v2ray.requestPermission()) { setState(() { connecting = false; status = 'Permission ditolak'; }); return; }
-      setState(() { connecting = false; connected = true; status = 'Connected'; });
-      startTime = DateTime.now();
-timer?.cancel();
-timer = Timer.periodic(const Duration(seconds: 1), (_) {
-  final d = DateTime.now().difference(startTime!);
-  setState(() { time = '${d.inHours.toString().padLeft(2, '0')}:${(d.inMinutes % 60).toString().padLeft(2, '0')}:${(d.inSeconds % 60).toString().padLeft(2, '0')}'; });
-});
-v2ray.startV2Ray(remark: parser.remark, config: parser.getFullConfiguration());
-      
-    } catch (e) {
-      setState(() { connecting = false; status = 'Failed: $e'; });
-    }
-  }
-
+      // KALO LAGI CONNECTI
   void addServer() {
     final c = TextEditingController();
     showDialog(context: context, builder: (_) => AlertDialog(
@@ -132,7 +97,7 @@ v2ray.startV2Ray(remark: parser.remark, config: parser.getFullConfiguration());
           decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(16)),
           child: Column(children: [
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(connected ? 'Connected' : connecting ? 'Connecting...' : 'Ready', style: TextStyle(color: connected ? Colors.green : Colors.red, fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(connected ? 'Connected' : connecting ? 'Connecting...' : 'Ready', style: TextStyle(color: connected ? Colors.green : Colors.red, fontSize: 20, fontWeight: FontWeit.bold)),
 GestureDetector(
 onTap: toggle,
 child: Container(
