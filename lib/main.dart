@@ -132,7 +132,7 @@ v2ray.startV2Ray(remark: parser.remark, config: parser.getFullConfiguration());
           decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(16)),
           child: Column(children: [
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(status, style: TextStyle(color: connected ? Colors.green : Colors.red, fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(connected ? 'Connected' : connecting ? 'Connecting...' : 'Ready', style: TextStyle(color: connected ? Colors.green : Colors.red, fontSize: 20, fontWeight: FontWeight.bold)),
 GestureDetector(
 onTap: toggle,
 child: Container(
