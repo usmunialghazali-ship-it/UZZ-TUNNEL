@@ -15,7 +15,7 @@ jobs:
           java-version: '17'
       - name: Install Flutter
         run: |
-          git clone --branch 3.24.3 --depth 1 https://github.com/flutter/flutter.git
+          git clone --branch 3.35.7 --depth 1 https://github.com/flutter/flutter.git
           echo "$GITHUB_WORKSPACE/flutter/bin" >> $GITHUB_PATH
       - name: Build APK
         run: |
