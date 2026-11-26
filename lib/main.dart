@@ -60,7 +60,73 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> toggle() async {
-      // KALO LAGI CONNECTI
+  if (connecting) {
+    try { await v2ray.stopV2Ray(); } catch (_) {}
+    timer?.cancel();
+    timer = null;
+    setState(() {
+      connecting = false;
+      connected = false;
+      status = 'Ready';
+      time = '00:00:00';
+      up = '0 B/s';
+      down = '0 B/s';
+    });
+    return;
+  }
+  if (servers.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Add server dulu')),
+    );
+    return;
+  }
+  if (connected) {
+    try { await v2ray.stopV2Ray(); } catch (_) {}
+    timer?.cancel();
+    timer = null;
+    setState(() {
+      connected = false;
+      connecting = false;
+      status = 'Ready';
+      time = '00:00:00';
+      up = '0 B/s';
+      down = '0 B/s';
+    });
+    return;
+  }
+
+  setState(() { connecting = true; status = 'Connecting...'; });
+  try {
+    final parser = V2ray.parseFromURL(servers[selected]);
+    if (!await v2ray.requestPermission()) {
+      setState(() { connecting = false; status = 'Ready'; });
+      return;
+    }
+    startTime = DateTime.now();
+    timer?.cancel();
+    timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      final d = DateTime.now().difference(startTime!);
+      setState(() {
+        time = '${d.inHours.toString().padLeft(2, '0')}:${(d.inMinutes % 60).toString().padLeft(2, '0')}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
+      });
+    });
+    final ok = await v2ray.startV2Ray(
+      remark: parser.remark,
+      config: parser.getFullConfiguration(),
+    );
+    if (!ok) throw Exception('start gagal');
+    setState(() {
+      connecting = false;
+      connected = true;
+      status = 'Connected';
+    });
+  } catch (e) {
+    timer?.cancel();
+    timer = null;
+    try { await v2ray.stopV2Ray(); } catch (_) {}
+    setState(() { connecting = false; connected = false; status = 'Ready'; });
+  }
+  }
   void addServer() {
     final c = TextEditingController();
     showDialog(context: context, builder: (_) => AlertDialog(
