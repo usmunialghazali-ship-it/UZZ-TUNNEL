@@ -83,12 +83,7 @@ class _HomeState extends State<Home> {
       final parser = V2ray.parseFromURL(servers[selected]);
       if (!await v2ray.requestPermission()) { setState(() { connecting = false; status = 'Permission ditolak'; }); return; }
       setState(() { connecting = false; connected = true; status = 'Connected'; });
-      await v2ray.startV2Ray(remark: parser.remark, config: parser.getFullConfiguration(), proxyOnly: false);
-      startTime = DateTime.now();
-      timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        final d = DateTime.now().difference(startTime!);
-        setState(() { time = '${d.inHours.toString().padLeft(2, '0')}:${(d.inMinutes % 60).toString().padLeft(2, '0')}:${(d.inSeconds % 60).toString().padLeft(2, '0')}'; });
-      });
+      
     } catch (e) {
       setState(() { connecting = false; status = 'Failed: $e'; });
     }
@@ -130,7 +125,12 @@ class _HomeState extends State<Home> {
           decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(16)),
           child: Column(children: [
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(status, style: TextStyle(color: connected ? Colors.green : Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(status, style: TextStyle(color: conawait v2ray.startV2Ray(remark: parser.remark, config: parser.getFullConfiguration(), proxyOnly: false);
+      startTime = DateTime.now();
+      timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        final d = DateTime.now().difference(startTime!);
+        setState(() { time = '${d.inHours.toString().padLeft(2, '0')}:${(d.inMinutes % 60).toString().padLeft(2, '0')}:${(d.inSeconds % 60).toString().padLeft(2, '0')}'; });
+      });nected ? Colors.green : Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
               GestureDetector(onTap: toggle,
                 child: Container(width: 72, height: 72, decoration: BoxDecoration(shape: BoxShape.circle, color: connected ? Colors.green : Colors.grey[800], border: Border.all(color: Colors.white24)),
                   child: Icon(connecting ? Icons.hourglass_top : Icons.power_settings_new, color: Colors.white, size: 36))),
