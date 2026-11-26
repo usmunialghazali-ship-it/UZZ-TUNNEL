@@ -28,9 +28,9 @@ jobs:
           cp /tmp/main.dart.bak lib/main.dart
           cp /tmp/pubspec.yaml.bak pubspec.yaml
           flutter pub get
-          flutter build apk --release
+          flutter build apk --release --split-per-abi
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: uzz-tunnel-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/app-*-release.apk
