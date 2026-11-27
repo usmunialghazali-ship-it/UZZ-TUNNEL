@@ -1,8 +1,9 @@
 #!/bin/bash
 set -e
-MANIFEST="android/app/src/main/AndroidManifest.xml"
 RES="android/app/src/main/res"
 mkdir -p $RES/layout $RES/xml
+mkdir -p android/app/src/main/kotlin/com/example/uzz_tunnel
+
 cat > $RES/layout/widget_layout.xml <<'XML'
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -10,58 +11,60 @@ cat > $RES/layout/widget_layout.xml <<'XML'
     android:layout_height="match_parent"
     android:background="#1A1A2E">
     <ImageView
-        android:layout_width="54dp"
-        android:layout_height="54dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_gravity="center"
         android:src="@android:drawable/sym_def_app_icon" />
     <View
-        android:layout_width="14dp"
-        android:layout_height="14dp"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
         android:layout_gravity="bottom|end"
-        android:layout_marginEnd="6dp"
-        android:layout_marginBottom="6dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="4dp"
         android:background="#FF3B30" />
 </FrameLayout>
 XML
+
 cat > $RES/xml/widget_info.xml <<'XML'
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    minWidth="40dp"
-minHeight="40dp"
-targetCellWidth="1"
-targetCellHeight="1"
+    android:minWidth="40dp"
+    android:minHeight="40dp"
+    android:targetCellWidth="1"
+    android:targetCellHeight="1"
     android:updatePeriodMillis="0"
-    android:initialLayout="@layout/widget_layout"
     android:resizeMode="none"
-    android:widgetCategory="home_screen" />
+    android:widgetCategory="home_screen"
+    android:initialLayout="@layout/widget_layout"
+    android:previewLayout="@layout/widget_layout" />
 XML
+
 python3 << 'PY'
 import pathlib
 p = pathlib.Path("android/app/src/main/AndroidManifest.xml")
 t = p.read_text()
-receiver = '''<receiver android:name=".UzzWidgetProvider" android:exported="false">
+receiver = """<receiver android:name=".UzzWidgetProvider" android:exported="false">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_info" />
-        </receiver>'''
-t = t.replace("</application>", receiver + "\n    </application>")
-p.write_text(t)
+        </receiver>"""
+if "UzzWidgetProvider" not in t:
+    t = t.replace("</application>", receiver + "\n    </application>")
+    p.write_text(t)
 PY
 
-mkdir -p android/app/src/main/kotlin/com/example/uzz_tunnel
 cat > android/app/src/main/kotlin/com/example/uzz_tunnel/UzzWidgetProvider.kt <<'KT'
 package com.example.uzz_tunnel
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.widget.RemoteViews
-import es.antonborri.home_widget.HomeWidgetPlugin
 class UzzWidgetProvider : AppWidgetProvider() {
-  override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-    for (id in appWidgetIds) {
-      val views = RemoteViews(context.packageName, R.layout.widget_layout)
-      appWidgetManager.updateAppWidget(id, views)
+    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+        for (id in appWidgetIds) {
+            val views = RemoteViews(context.packageName, R.layout.widget_layout)
+            appWidgetManager.updateAppWidget(id, views)
+        }
     }
-  }
 }
 KT
 echo "widget setup done"
