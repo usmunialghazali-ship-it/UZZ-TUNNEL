@@ -13,7 +13,7 @@ cat > $RES/layout/widget_layout.xml <<'XML'
         android:layout_width="54dp"
         android:layout_height="54dp"
         android:layout_gravity="center"
-        android:src="@mipmap/ic_launcher" />
+        android:src="@android:drawable/sym_def_app_icon" />
     <View
         android:layout_width="14dp"
         android:layout_height="14dp"
