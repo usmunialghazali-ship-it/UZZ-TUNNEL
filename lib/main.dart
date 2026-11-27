@@ -42,11 +42,12 @@ class _HomeState extends State<Home> {
         if (connected) {
   connecting = false;
   status = 'Connected';
-   HomeWidget.saveWidgetData<String>('status', 'Tersambung');
- HomeWidget.updateWidget(
-  name: 'UzzWidgetProvider',
-  androidName: 'com.example.uzz_tunnel.UzzWidgetProvider'
-);
+  HomeWidget.saveWidgetData<String>('status', 'Connected').then((_) {
+    HomeWidget.updateWidget(
+      name: 'UzzWidgetProvider',
+      androidName: 'com.example.uzz_tunnel.UzzWidgetProvider'
+    );
+  });
         }
         if (s.state.toLowerCase() == 'disconnected') { status = 'Ready'; up = '0 B/s'; down = '0 B/s'; time = '00:00:00'; timer?.cancel(); }
         up = '${s.uploadSpeed}';
