@@ -30,6 +30,7 @@ cat > $RES/layout/widget_layout.xml <<'XML'
             android:textStyle="bold"
             android:textSize="13sp" />
         <TextView
+            android:id="@+id/widget_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Terputus"
