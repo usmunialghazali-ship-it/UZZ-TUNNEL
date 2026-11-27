@@ -105,7 +105,7 @@ await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidget
       down = '0 B/s';
     });
     await HomeWidget.saveWidgetData<String>('status', 'Terputus');
-await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidgetProvider');
+await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'com.example.uzz_android_app.UzzWidgetProvider');
     return;
   }
 _isManualStop = false;
