@@ -56,7 +56,6 @@ import es.antonborri.home_widget.HomeWidgetPlugin
 class UzzWidgetProvider : AppWidgetProvider() {
   override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
     for (id in appWidgetIds) {
-      val widgetData = HomeWidgetPlugin.getData(context)
       val views = RemoteViews(context.packageName, R.layout.widget_layout)
       appWidgetManager.updateAppWidget(id, views)
     }
