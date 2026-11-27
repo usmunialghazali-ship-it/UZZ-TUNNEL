@@ -81,6 +81,8 @@ class _HomeState extends State<Home> {
       up = '0 B/s';
       down = '0 B/s';
     });
+    await HomeWidget.saveWidgetData<String>('status', 'Terputus');
+await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidgetProvider');
     return;
   }
   if (servers.isEmpty) {
@@ -102,6 +104,8 @@ class _HomeState extends State<Home> {
       up = '0 B/s';
       down = '0 B/s';
     });
+    await HomeWidget.saveWidgetData<String>('status', 'Terputus');
+await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidgetProvider');
     return;
   }
 _isManualStop = false;
@@ -137,6 +141,8 @@ await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidget
     try { await v2ray.stopV2Ray(); } catch (_) {}
     setState(() { connecting = false; connected = false; status = 'Ready'; });
   }
+    await HomeWidget.saveWidgetData<String>('status', 'Terputus');
+await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidgetProvider');
   }
   void addServer() {
     final c = TextEditingController();
