@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_v2ray_client/flutter_v2ray.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:home_widget/home_widget.dart';
 void main() => runApp(const MaterialApp(home: Home(), debugShowCheckedModeBanner: false));
 
 class Home extends StatefulWidget {
