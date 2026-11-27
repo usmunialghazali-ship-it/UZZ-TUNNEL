@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_v2ray_client/flutter_v2ray.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 void main() => runApp(const MaterialApp(home: Home(), debugShowCheckedModeBanner: false));
 
 class Home extends StatefulWidget {
@@ -80,6 +80,8 @@ class _HomeState extends State<Home> {
       up = '0 B/s';
       down = '0 B/s';
     });
+    await HomeWidget.saveWidgetData<String>('status', 'Terputus');
+await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidgetProvider');
     return;
   }
   if (servers.isEmpty) {
@@ -101,6 +103,8 @@ class _HomeState extends State<Home> {
       up = '0 B/s';
       down = '0 B/s';
     });
+    await HomeWidget.saveWidgetData<String>('status', 'Terputus');
+await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidgetProvider');
     return;
   }
 _isManualStop = false;
@@ -128,6 +132,8 @@ _isManualStop = false;
       connected = true;
       status = 'Connected';
     });
+    await HomeWidget.saveWidgetData<String>('status', 'Terhubung');
+await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidgetProvider');
   } catch (e) {
     timer?.cancel();
     timer = null;
@@ -159,7 +165,8 @@ _isManualStop = false;
       } catch (_) { setState(() { pings[link] = 'fail'; }); }
     }
   }
-
+await HomeWidget.saveWidgetData<String>('status', 'Terputus');
+await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidgetProvider');
   @override
   Widget build(BuildContext context) {
     return Scaffold(
