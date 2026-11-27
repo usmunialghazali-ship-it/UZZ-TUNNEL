@@ -75,7 +75,10 @@ import android.widget.RemoteViews
 class UzzWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         for (id in appWidgetIds) {
-            val views = RemoteViews(context.packageName, R.layout.widget_layout)
+        val prefs = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
+        val status = prefs.getString("status", "Terputus")
+val views = RemoteViews(context.packageName, R.layout.widget_layout)
+views.setTextViewText(R.id.widget_status, status)
             appWidgetManager.updateAppWidget(id, views)
         }
     }
