@@ -43,7 +43,7 @@ class _HomeState extends State<Home> {
   connecting = false;
   status = 'Connected';
   HomeWidget.saveWidgetData<String>('status', 'Tersambung');
-  HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'com.example.uzz_android_app.UzzWidgetProvider');
+  androidName: 'com.example.uzz_tunnel.UzzWidgetProvider'
         }
         if (s.state.toLowerCase() == 'disconnected') { status = 'Ready'; up = '0 B/s'; down = '0 B/s'; time = '00:00:00'; timer?.cancel(); }
         up = '${s.uploadSpeed}';
