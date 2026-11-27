@@ -26,8 +26,10 @@ XML
 cat > $RES/xml/widget_info.xml <<'XML'
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="72dp"
-    android:minHeight="72dp"
+    minWidth="40dp"
+minHeight="40dp"
+targetCellWidth="1"
+targetCellHeight="1"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/widget_layout"
     android:resizeMode="none"
