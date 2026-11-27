@@ -44,7 +44,7 @@ receiver = '''<receiver android:name=".UzzWidgetProvider" android:exported="fals
 t = t.replace("</application>", receiver + "\n    </application>")
 p.write_text(t)
 PY
-fi
+
 mkdir -p android/app/src/main/kotlin/com/example/uzz_tunnel
 cat > android/app/src/main/kotlin/com/example/uzz_tunnel/UzzWidgetProvider.kt <<'KT'
 package com.example.uzz_tunnel
