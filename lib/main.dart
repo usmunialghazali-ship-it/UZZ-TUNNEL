@@ -81,8 +81,6 @@ class _HomeState extends State<Home> {
       up = '0 B/s';
       down = '0 B/s';
     });
-    await HomeWidget.saveWidgetData<String>('status', 'Terputus');
-await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidgetProvider');
     return;
   }
   if (servers.isEmpty) {
@@ -104,8 +102,6 @@ await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidget
       up = '0 B/s';
       down = '0 B/s';
     });
-    await HomeWidget.saveWidgetData<String>('status', 'Terputus');
-await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidgetProvider');
     return;
   }
 _isManualStop = false;
@@ -166,8 +162,6 @@ await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidget
       } catch (_) { setState(() { pings[link] = 'fail'; }); }
     }
   }
-await HomeWidget.saveWidgetData<String>('status', 'Terputus');
-await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidgetProvider');
   @override
   Widget build(BuildContext context) {
     return Scaffold(
