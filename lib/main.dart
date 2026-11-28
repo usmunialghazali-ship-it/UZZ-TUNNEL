@@ -198,7 +198,14 @@ await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidget
 void save() {
   _save();
 }
-                  void _remove(int i) {
+                  Widget stat(String label, String value) {
+  return Column(
+    children: [
+      Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+      Text(label, style: const TextStyle(fontSize: 12)),
+    ],
+  );
+                  }void _remove(int i) {
   final removed = servers[i];
   setState(() {
     servers.removeAt(i);
