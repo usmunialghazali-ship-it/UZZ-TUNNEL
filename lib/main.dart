@@ -28,32 +28,42 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     v2ray = V2ray(onStatusChanged: (s) {
-      if (!mounted) return;
-      if (_isManualStop) {
-  if (s.state.toLowerCase() == 'connected') {
-    v2ray.stopV2Ray();
-  }
-  return;
-      }
-      if (s.state.toLowerCase() == 'connecting') return;
-      setState(() {
-        // state: connected / disconnected
-        connected = s.state.toLowerCase() == 'connected';
-        if (connected) {
-  connecting = false;
-  status = 'Connected';
-  HomeWidget.saveWidgetData<String>('status', 'Terhubung').then((_) {
-    HomeWidget.updateWidget(
-      name: 'UzzWidgetProvider',
-      androidName: 'com.example.uzz_tunnel.UzzWidgetProvider'
-    );
-  });
-        }
-        if (s.state.toLowerCase() == 'disconnected') { status = 'Ready'; up = '0 B/s'; down = '0 B/s'; time = '00:00:00'; timer?.cancel(); }
-        up = '${s.uploadSpeed}';
-        down = '${s.downloadSpeed}';
+      v2ray.onStatusChanged.listen((s) {
+  if (!mounted) return;
+  setState(() {
+    if (s.state.toLowerCase() == 'connected') {
+      connecting = false;
+      status = 'Connected';
+      if (startTime == null) startTime = DateTime.now();
+      timer?.cancel();
+      timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        final d = DateTime.now().difference(startTime!);
+        setState(() {
+          time = '${d.inHours.toString().padLeft(2, '0')}:${(d.inMinutes % 60).toString().padLeft(2, '0')}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
+        });
+        HomeWidget.saveWidgetData<String>('widget_time', time);
+        HomeWidget.saveWidgetData<String>('status', 'Terhubung');
+        HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'com.example.uzz_tunnel.UzzWidgetProvider');
       });
-    });
+      HomeWidget.saveWidgetData<String>('status', 'Terhubung').then((_) {
+        HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'com.example.uzz_tunnel.UzzWidgetProvider');
+      });
+    } else if (s.state.toLowerCase() == 'disconnected') {
+      timer?.cancel();
+      startTime = null;
+      status = 'Ready';
+      up = '0 B/s';
+      down = '0 B/s';
+      time = '00:00:00';
+      HomeWidget.saveWidgetData<String>('status', 'Terputus');
+      HomeWidget.saveWidgetData<String>('widget_time', '00:00:00');
+      HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'com.example.uzz_tunnel.UzzWidgetProvider');
+    } else {
+      up = '${s.uploadSpeed}';
+      down = '${s.downloadSpeed}';
+    }
+  });
+});
     _init();
   }
 
