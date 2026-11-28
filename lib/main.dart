@@ -234,3 +234,4 @@ child: Icon(connecting ? Icons.hourglass_top : Icons.power_settings_new, color: 
   }
   Widget _stat(String l, String v) => Column(children: [Text(l, style: const TextStyle(color: Colors.white54)), Text(v, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))]);
 } 
+// rebuild
