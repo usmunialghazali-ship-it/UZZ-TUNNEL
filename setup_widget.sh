@@ -68,7 +68,8 @@ if "UzzWidgetProvider" not in t:
 PY
 
 cat > android/app/src/main/kotlin/com/example/uzz_tunnel/UzzWidgetProvider.kt <<'KT'
-package com.example.uzz_android_app
+package com.example.uzz_tunnel
+import com.example.uzz_tunnel.R
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
