@@ -190,7 +190,14 @@ await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidget
       } catch (_) { setState(() { pings[link] = 'fail'; }); }
     }
   }
-  
+  String nameOf(String s) {
+  final parts = s.split(':');
+  return parts.isNotEmpty ? parts[0] : s;
+}
+
+void save() {
+  _save();
+}
                   void _remove(int i) {
   final removed = servers[i];
   setState(() {
