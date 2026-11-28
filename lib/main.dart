@@ -219,7 +219,7 @@ child: Icon(connecting ? Icons.hourglass_top : Icons.power_settings_new, color: 
           ]),
         ))),
       ]),
-      floatingActionButton: FloatingActionButton(onPressed: addServer, backgroundColor: Colors.deepPurple, child: const Icon(Icons.add)),
+      floatingActionButton: FloatingActionButton(onPressed: addServer, backgroundColor: Colors.deepPurple, child: const Icon(Icons.add, color:Colors.white,size: 32)),
     );
   }
 
