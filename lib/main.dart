@@ -146,7 +146,7 @@ _isManualStop = false;
       status = 'Connected';
     });
     await HomeWidget.saveWidgetData<String>('status', 'Terhubung');
-await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidgetProvider', qualifiedAndroidName: 'com.example.uzz_tunnel.UzzWidgetProvider');
+await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidgetProvider', qualifiedAndroidName: 'com.example.uzz_android_app.UzzWidgetProvider');
   } catch (e) {
     timer?.cancel();
     timer = null;
