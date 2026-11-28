@@ -2,7 +2,7 @@
 set -e
 RES="android/app/src/main/res"
 mkdir -p $RES/layout $RES/xml
-mkdir -p android/app/src/main/kotlin/com/example/uzz_tunnel
+mkdir -p android/app/src/main/kotlin/com/example/uzz_android_app
 
 cat > $RES/layout/widget_layout.xml <<'XML'
 <?xml version="1.0" encoding="utf-8"?>
