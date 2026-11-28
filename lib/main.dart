@@ -190,7 +190,21 @@ await HomeWidget.updateWidget(name: 'UzzWidgetProvider', androidName: 'UzzWidget
       } catch (_) { setState(() { pings[link] = 'fail'; }); }
     }
   }
-  @override
+  
+                  void _remove(int i) {
+  final removed = servers[i];
+  setState(() {
+    servers.removeAt(i);
+    pings.remove(removed);
+    if (selected == i) {
+      selected = -1;
+    } else if (selected > i) {
+      selected--;
+    }
+  });
+  _save();
+                  }
+                  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
