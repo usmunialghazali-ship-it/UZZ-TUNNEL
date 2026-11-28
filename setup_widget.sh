@@ -2,7 +2,7 @@
 set -e
 RES="android/app/src/main/res"
 mkdir -p $RES/layout $RES/xml
-mkdir -p android/app/src/main/kotlin/com/example/uzz_android_app
+mkdir -p android/app/src/main/kotlin/com/example/uzz_tunnel
 
 cat > $RES/layout/widget_layout.xml <<'XML'
 <?xml version="1.0" encoding="utf-8"?>
@@ -67,7 +67,7 @@ if "UzzWidgetProvider" not in t:
     p.write_text(t)
 PY
 
-cat > android/app/src/main/kotlin/com/example/uzz_android_app/UzzWidgetProvider.kt <<'KT'
+cat > android/app/src/main/kotlin/com/example/uzz_tunnel/UzzWidgetProvider.kt <<'KT'
 package com.example.uzz_android_app
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
