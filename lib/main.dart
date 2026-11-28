@@ -229,7 +229,7 @@ child: Icon(connecting ? Icons.hourglass_top : Icons.power_settings_new, color: 
           ]),
         ))),
       ]),
-      floatingActionButton: FloatingActionButton(onPressed: _addServer, backgroundColor: Colors.deepPurple, child: const Icon(Icons.add, color:Colors.white,size: 32)),
+      floatingActionButton: FloatingActionButton(onPressed: addServer, backgroundColor: Colors.deepPurple, child: const Icon(Icons.add, color:Colors.white,size: 32)),
     );
   }
 String nameOf(String s) => s;
