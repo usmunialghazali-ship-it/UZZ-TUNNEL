@@ -42,7 +42,7 @@ class _HomeState extends State<Home> {
         if (connected) {
   connecting = false;
   status = 'Connected';
-  HomeWidget.saveWidgetData<String>('status', 'Connected').then((_) {
+  HomeWidget.saveWidgetData<String>('status', 'Terhubung').then((_) {
     HomeWidget.updateWidget(
       name: 'UzzWidgetProvider',
       androidName: 'com.example.uzz_tunnel.UzzWidgetProvider'
